@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 
 namespace lab11{
-    class Complex : ICloneable{
+    class Complex : ICloneable, IEquatable<Complex> {
         double _real;
         double _imaginary;
 
-        public event EventHandler<ZeroDivideEventArgs> ZeroDivideEventHandler; 
-
+        public static readonly double Eps = Math.Pow(10, -10);
+        public event EventHandler<ZeroDivideEventArgs> ZeroDivide; 
 
         public Complex() {
             _real = 0;
             _imaginary = 0;
+        }
+
+        public Complex(Complex c) {
+            _real = c._real;
+            _imaginary = c._imaginary;
         }
 
 
@@ -24,21 +30,43 @@ namespace lab11{
 
 
         public Complex(double module, double cosValue, double sinValue) {
-            getAlgebraicForm(module, cosValue, sinValue);
+            GetAlgebraicForm(module, cosValue, sinValue);
         }
 
+        public static readonly Complex Zero = new Complex(0, 0);
+        public static readonly Complex One = new Complex(1, 0);
+        public static readonly Complex Error = new Complex(double.NaN, double.NaN);
 
-        public void getAlgebraicForm(double module, double cosValue, double sinValue) {
-            //Complex result = new Complex();
+        public static implicit operator Complex(double num) => new Complex(num, 0);
+
+
+        private void GetAlgebraicForm(double module, double cosValue, double sinValue) {
+            
             _real = module * cosValue;
             _imaginary = module * sinValue;
-            //return result;
+            
         }
 
         public static Complex ComplexConjugate(Complex complex) {
             return Multiply(complex, new Complex(-1, 0));
         }
 
+        public double Module => Math.Pow(Math.Pow(_real, 2) + Math.Pow(_imaginary, 2), 0.5);
+        
+
+        public static Complex Pow(Complex complexNum, double power) {
+            //Complex result = new Complex();
+            double cosX = complexNum._real / complexNum.Module;
+            double angle = Math.Acos(cosX);
+            double resPower = Math.Pow(complexNum.Module, power);
+            cosX = Math.Cos(power * angle);
+            double sinX = Math.Sin(power * angle);
+            return new Complex(Math.Round(resPower,2), Math.Round(cosX,2), Math.Round(sinX,2));
+        }
+
+        public static Complex Sqrt(Complex complex) {
+            return Pow(complex, 0.5);
+        }
 
         public static Complex Add(Complex left, Complex right) {
             Complex result = new Complex();
@@ -62,30 +90,29 @@ namespace lab11{
             return result;
         }
 
-        public static Complex Divide(Complex comlexNum, double realNum) {
-            
-            
-            if(Math.Abs(realNum) < Math.Pow(10, -14)) {
-                ZeroDivideEventArgs args = new ZeroDivideEventArgs(comlexNum, realNum);
-                
-            }
-            //todo реализовать событие генерируемое при делении на 0
-            Complex result = comlexNum;
-            result._real /= realNum;
-            result._imaginary /= realNum;
-            return result;
-        }
-
+       
         public static Complex Divide(Complex dividend, Complex divider) {
-            dividend = Multiply(dividend, ComplexConjugate(divider));
-            divider = Multiply(divider, ComplexConjugate(divider));
-            dividend = Divide(dividend, divider._real);
-            return dividend;
+            if (Math.Abs(divider._real) < Eps && Math.Abs(divider._imaginary) < Eps) {
+                ZeroDivideEventArgs args = new ZeroDivideEventArgs(dividend, divider);
+                dividend.OnZeroDivide(args);
+                return Error;
+            }
+            Complex numerator = new Complex();
+            Complex denominator = new Complex();
+            numerator = Multiply(dividend, ComplexConjugate(divider));
+            denominator = Multiply(divider, ComplexConjugate(divider));
+            numerator._real /= denominator._real;
+            numerator._imaginary /= denominator._real;
+            return numerator;
 
         }
 
-        protected virtual void OnZeroDivide(ZeroDivideEventArgs e) {
-            ZeroDivideEventHandler?.Invoke(this, e);
+
+        
+
+
+        protected void OnZeroDivide(ZeroDivideEventArgs e) {
+            ZeroDivide?.Invoke(this, e);          
         }
 
 
@@ -107,6 +134,8 @@ namespace lab11{
             return Divide(left, right);
         }
 
+        
+
 
         public override string ToString() {
             StringBuilder res = new StringBuilder();
@@ -123,6 +152,23 @@ namespace lab11{
 
         public object Clone() {
             return new Complex(this._real, this._imaginary);
+        }
+
+        public override bool Equals(object obj) {
+            if (obj is null)
+                return false;
+            if (!(obj is Complex c))
+                return false;
+
+            return Equals(c);
+        }
+
+        public bool Equals(Complex other) {
+            if (other is null)
+                return false;
+            return Math.Abs(_real - other._real) < Eps &&
+                   Math.Abs(_imaginary - other._imaginary) < Eps;
+                
         }
     }
 }
