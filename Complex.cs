@@ -97,13 +97,12 @@ namespace lab11{
                 dividend.OnZeroDivide(args);
                 return Error;
             }
-            Complex numerator = new Complex();
-            Complex denominator = new Complex();
-            numerator = Multiply(dividend, ComplexConjugate(divider));
-            denominator = Multiply(divider, ComplexConjugate(divider));
-            numerator._real /= denominator._real;
-            numerator._imaginary /= denominator._real;
-            return numerator;
+            Complex result = new Complex();
+            result._real = (dividend._real * divider._real + dividend._imaginary * divider._imaginary) /
+                            (Math.Pow(divider._real, 2) + Math.Pow(divider._imaginary, 2));
+            result._imaginary = (divider._real * dividend._imaginary - dividend._real * divider._imaginary) /
+                               (Math.Pow(divider._real, 2) + Math.Pow(divider._imaginary, 2));
+            return result;
 
         }
 
@@ -139,14 +138,15 @@ namespace lab11{
 
         public override string ToString() {
             StringBuilder res = new StringBuilder();
-            res.Append(_real);
+            res.Append("(").Append(Math.Round(_real,2));
             if(_imaginary > 0 ) {
-                res.Append(" - ");
-                res.Append(_imaginary).Append("i");
+                res.Append(" + ");
+                res.Append(Math.Round(_imaginary,2)).Append("i");
             }
             else if(_imaginary < 0) {
-                res.Append(_imaginary).Append("i");
+                res.Append(Math.Round(_imaginary, 2)).Append("i");
             }
+            res.Append(")");
             return res.ToString();
         }
 

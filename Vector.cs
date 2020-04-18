@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace lab11 {
-    class Vector<T> : ICloneable, IComparable<Vector<T>>, IComparable where T: new () {
+    class Vector<T> :IEquatable<Vector<T>> , ICloneable, IComparable<Vector<T>>, IComparable where T: new () {
         T[] _valuesArray;
 
         public Vector() { }
@@ -121,12 +122,15 @@ namespace lab11 {
 
         public override string ToString() {
             StringBuilder result = new StringBuilder();
+            
             result.Append("(");
-            for(int i = 0; i < Size; i++) {
-                if (i == Size - 1) 
-                    result.Append(Math.Round((dynamic)this[i],2));
-                else
-                    result.Append(Math.Round((dynamic)this[i], 2)).Append(", ");
+            for (int i = 0; i < Size; i++) {
+                if (i == Size - 1) {                 
+                    result.Append((dynamic)this[i]);    
+                }
+                else {                  
+                    result.Append((dynamic)this[i]).Append(",");
+                }             
             }
             result.Append(")");
             return result.ToString();
@@ -148,6 +152,17 @@ namespace lab11 {
                 throw new ArgumentException("Это не полином", nameof(obj));
             }
             return CompareTo((Vector<T>)obj);
+        }
+
+        public bool Equals( Vector<T> other) {
+            if(!CheckSize(this, other)) {
+                return false;
+            }
+            for(int i = 0; i < this.Size; i++) {
+                if ((dynamic)this[i] != other[i])
+                    return false;
+            }
+            return true;
         }
     }
 
