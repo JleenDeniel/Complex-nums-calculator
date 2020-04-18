@@ -10,6 +10,8 @@ namespace lab11
             Console.WriteLine(complex / new Complex(0,0));
             Console.WriteLine(Environment.NewLine);
 
+            
+
             UnitTests.ComplexSum();
             UnitTests.ComplexSubtraction();
             UnitTests.ComplexMultiplication();

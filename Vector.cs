@@ -34,12 +34,29 @@ namespace lab11 {
             set { _valuesArray[i] = value; }
         }
 
-        public int Module() {
-            T sum = (dynamic)0;
-            for(int i = 0; i < Size; i++) {
-                sum += Complex.Pow((dynamic)this[i], 2); 
+        //todo 
+        //public int Module() {
+        //    T sum = (dynamic)0;
+        //    for(int i = 0; i < Size; i++) {
+        //        sum += Complex.Pow((dynamic)this[i], 2); 
+        //    }
+        //    return Complex.Sqrt((dynamic)sum, 2);
+        //}
+
+        public double Module() {
+            T res = new T();
+            if (this[0] is Complex) {
+                for (int i = 0; i < this.Size; i++) {
+                    res += (dynamic)Complex.Pow((dynamic)this[i], 2);                    
+                }
+
             }
-            return Complex.Sqrt((dynamic)sum);
+            else {
+                for (int i = 0; i < this.Size; i++) {
+                    res += (dynamic)this[i] * (dynamic)this[i];
+                }
+            }
+            return Math.Sqrt((dynamic)res);
         }
 
         public static T ScalarMultiply(Vector<T> left,Vector<T> right) {
@@ -106,8 +123,11 @@ namespace lab11 {
         public static Vector<T> operator *(T left, Vector<T> right) => right * left;
            
         
-
+        //todo добавить проверку на ЛНЗ
         public static Vector<T>[] Orthogonolization(Vector<T>[] vectorsArray) {
+            if (!LinearIndependence(vectorsArray)) {
+                throw new ArgumentException("Линейно зависимая система");
+            }
             Vector<T>[] result = new Vector<T>[vectorsArray.Length];
             result[0] = new Vector<T>(vectorsArray[0]._valuesArray);            
             for (int i = 1; i < vectorsArray.Length; i++) {
@@ -118,6 +138,21 @@ namespace lab11 {
                 }               
             }
             return result;
+        }
+
+        public static bool LinearIndependence(Vector<T>[] vectors) {
+            Vector<T> result = new Vector<T>(vectors[0].Size);
+            foreach(var vector in vectors) {
+                result += vector;
+            }
+            int counter = 0;
+            for(int i = 0; i < result.Size; i++) {
+                if((dynamic)result[i] == 0 || (dynamic)result[i] == Complex.Zero) {
+                    counter++;
+                }
+            }
+            return counter == result.Size;
+               
         }
 
         public override string ToString() {
@@ -149,7 +184,7 @@ namespace lab11 {
                 throw new ArgumentNullException("NULL", nameof(obj));
             }
             if (!(obj is Vector<T>)) {
-                throw new ArgumentException("Это не полином", nameof(obj));
+                throw new ArgumentException("Это не вектор", nameof(obj));
             }
             return CompareTo((Vector<T>)obj);
         }

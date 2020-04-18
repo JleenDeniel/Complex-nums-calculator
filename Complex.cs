@@ -11,17 +11,10 @@ namespace lab11{
 
         public static readonly double Eps = Math.Pow(10, -10);
         public event EventHandler<ZeroDivideEventArgs> ZeroDivide; 
+       
+        public Complex():this(0,0) { }
 
-        public Complex() {
-            _real = 0;
-            _imaginary = 0;
-        }
-
-        public Complex(Complex c) {
-            _real = c._real;
-            _imaginary = c._imaginary;
-        }
-
+        public Complex(Complex c):this(c._real, c._imaginary) { }
 
         public Complex(double real, double imaginary) {
             _real = real;
@@ -53,6 +46,7 @@ namespace lab11{
 
         public double Module => Math.Pow(Math.Pow(_real, 2) + Math.Pow(_imaginary, 2), 0.5);
         
+        
 
         public static Complex Pow(Complex complexNum, double power) {
             //Complex result = new Complex();
@@ -64,8 +58,54 @@ namespace lab11{
             return new Complex(Math.Round(resPower,2), Math.Round(cosX,2), Math.Round(sinX,2));
         }
 
-        public static Complex Sqrt(Complex complex) {
-            return Pow(complex, 0.5);
+        public static double? Arg(Complex mcomp) {
+            if (mcomp._real > double.Epsilon) {
+                return Math.Atan(mcomp._imaginary / mcomp._imaginary);
+            }
+            if (mcomp._real < double.Epsilon && mcomp._imaginary >= double.Epsilon) {
+                return Math.PI + Math.Atan(mcomp._imaginary / mcomp._real);
+            }
+            if (mcomp._real < double.Epsilon && mcomp._imaginary < double.Epsilon) {
+                return -Math.PI + Math.Atan(mcomp._imaginary / mcomp._real);
+            }
+            if (mcomp._real == double.Epsilon && mcomp._imaginary > double.Epsilon) {
+                return Math.PI;
+            }
+
+            if (mcomp._real == double.Epsilon && mcomp._imaginary < double.Epsilon) {
+                return -Math.PI;
+            }
+
+            return null;
+        }
+        //todo возвращать массив значений
+        public static Complex[] Sqrt(Complex A, int sqrtPow)
+        {
+            if (sqrtPow < 0)
+            {
+                throw new ArgumentException("Корень отрицательной степени", nameof(sqrtPow));
+            }
+            if (Arg(A) == null)
+            {
+                throw new ArgumentException("NULL", nameof(sqrtPow));
+            }
+            var res = new Complex[sqrtPow];
+            var complexTmpAbs = new Complex(Math.Pow(A.Module, (1.0 / sqrtPow)), 0.0);
+            for (int k = 0; k < sqrtPow; k++)
+            {
+                var comp = new Complex(Math.Cos(((double)Arg(A) + 2 * Math.PI * k) / sqrtPow),
+                                                    Math.Sin(((double)Arg(A) + 2 * Math.PI * k) / sqrtPow));
+                res[k] = complexTmpAbs * comp;
+                if (Math.Abs(res[k]._real) < double.Epsilon)
+                {
+                    res[k]._real = 0.0;
+                }
+                if (Math.Abs(res[k]._imaginary) < double.Epsilon)
+                {
+                    res[k]._imaginary = 0.0;
+                }
+            }
+            return res;
         }
 
         public static Complex Add(Complex left, Complex right) {
